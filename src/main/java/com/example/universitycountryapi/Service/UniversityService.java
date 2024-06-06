@@ -1,7 +1,10 @@
 package com.example.universitycountryapi.Service;
 
 import com.example.universitycountryapi.Model.University;
+import com.example.universitycountryapi.Exception.NoUniversityFoundException;
+import com.example.universitycountryapi.Exception.NoCountryFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -20,6 +23,9 @@ public class UniversityService {
     public List<University> getAllUniversities() {
         String url = "http://universities.hipolabs.com/search";
         University[] universities = restTemplate.getForObject(url, University[].class);
+        if (universities == null || universities.length == 0) {
+            throw new NoUniversityFoundException("No universities found");
+        }
         return Arrays.asList(universities);
     }
 
@@ -28,7 +34,13 @@ public class UniversityService {
             String url = "http://universities.hipolabs.com/search?country=" + country.replace(" ","+");
             University[] universities = restTemplate.getForObject(url, University[].class);
             return Arrays.asList(universities);
-        }, executorService);
+        }, executorService).exceptionally(ex -> {
+            if (ex.getCause() instanceof RestClientException) {
+                throw new NoCountryFoundException("No such country found: " + country);
+            } else {
+                throw new RuntimeException("An unexpected error occurred");
+            }
+        });
     }
 
     public List<University> getUniversitiesByCountries(List<String> countries) {
