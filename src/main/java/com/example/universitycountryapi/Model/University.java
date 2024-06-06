@@ -4,7 +4,8 @@ import java.util.List;
 
 public class University {
     private String name;
-    private String domain;
+//    private String domain;
+    private List<String> domains;
     private List<String> web_pages;
 
     // Getters and setters
@@ -16,12 +17,12 @@ public class University {
         this.name = name;
     }
 
-    public String getDomain() {
-        return domain;
+    public List<String> getDomains() {
+        return domains;
     }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
+    public void setDomains(List<String> domains) {
+        this.domains = domains;
     }
 
     public List<String> getWeb_pages() {
