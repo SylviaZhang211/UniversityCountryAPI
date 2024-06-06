@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoCountryFoundException.class)
-    public ResponseEntity<Object> handleNoSuchCountryFoundException(NoCountryFoundException ex, WebRequest request) {
+    public ResponseEntity<Object> handleNoCountryFoundException(NoCountryFoundException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("message", ex.getMessage());

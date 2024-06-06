@@ -4,6 +4,7 @@ import com.example.universitycountryapi.Model.University;
 import com.example.universitycountryapi.Exception.NoUniversityFoundException;
 import com.example.universitycountryapi.Exception.NoCountryFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,25 +32,36 @@ public class UniversityService {
 
     public CompletableFuture<List<University>> getUniversitiesByCountry(String country) {
         return CompletableFuture.supplyAsync(() -> {
-            String url = "http://universities.hipolabs.com/search?country=" + country.replace(" ","+");
-            University[] universities = restTemplate.getForObject(url, University[].class);
-            return Arrays.asList(universities);
-        }, executorService).exceptionally(ex -> {
-            if (ex.getCause() instanceof RestClientException) {
+
+            try {
+                String url = "http://universities.hipolabs.com/search?country=" + country.replace(" ","+");
+                University[] universities = restTemplate.getForObject(url, University[].class);
+                if (universities == null || universities.length == 0) {
+                    throw new NoUniversityFoundException("No universities found for country: " + country);
+                }
+                return Arrays.asList(universities);
+            } catch (HttpClientErrorException e) {
                 throw new NoCountryFoundException("No such country found: " + country);
-            } else {
-                throw new RuntimeException("An unexpected error occurred");
+            } catch (RestClientException e) {
+                throw new RuntimeException("An unexpected error occurred", e);
             }
-        });
+        }, executorService);
     }
 
-    public List<University> getUniversitiesByCountries(List<String> countries) {
-        List<CompletableFuture<List<University>>> futures = countries.stream()
-                .map(this::getUniversitiesByCountry)
-                .collect(Collectors.toList());
-        return futures.stream()
-                .map(CompletableFuture::join)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-    }
+public List<University> getUniversitiesByCountries(List<String> countries) {
+    List<CompletableFuture<List<University>>> futures = countries.stream()
+            .map(country -> getUniversitiesByCountry(country).handle((result, ex) -> {
+                if (ex != null) {
+
+                    throw new NoCountryFoundException("No country found for: " + country);
+                }
+                return result;
+            }))
+            .collect(Collectors.toList());
+
+    return futures.stream()
+            .map(CompletableFuture::join)
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+}
 }
