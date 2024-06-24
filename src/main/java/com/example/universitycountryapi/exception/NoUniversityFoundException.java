@@ -1,4 +1,4 @@
-package com.example.universitycountryapi.Exception;
+package com.example.universitycountryapi.exception;
 
 
 

@@ -1,4 +1,4 @@
-package com.example.universitycountryapi.Exception;
+package com.example.universitycountryapi.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

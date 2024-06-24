@@ -1,4 +1,4 @@
-package com.example.universitycountryapi.Model;
+package com.example.universitycountryapi.model;
 
 import java.util.List;
 
